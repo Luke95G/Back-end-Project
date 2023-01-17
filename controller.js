@@ -17,4 +17,6 @@ const getAllReviews = (request, response, next) => {
     .catch(next);
 };
 
-module.exports = { getAllCategories, getAllReviews };
+const getReviewByID = () => {};
+
+module.exports = { getAllCategories, getAllReviews, getReviewByID };

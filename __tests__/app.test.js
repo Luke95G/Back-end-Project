@@ -4,6 +4,7 @@ const seed = require("../db/seeds/seed");
 const db = require("../db/connection");
 const testData = require("../db/data/test-data");
 const reviews = require("../db/data/development-data/reviews");
+const { DatabaseError } = require("pg");
 
 afterAll(() => {
   return db.end();
@@ -57,6 +58,28 @@ describe("api/reviews", () => {
         });
       });
   });
+  test("should check that both keys and values are as expected", () => {
+    return request(app)
+      .get("/api/reviews")
+      .then((result) => {
+        const output = result.body.reviews;
+        reviews.forEach((review) => {
+          expect(review).toEqual(
+            expect.objectContaining({
+              title: expect.any(String),
+              designer: expect.any(String),
+              owner: expect.any(String),
+              review_img_url: expect.any(String),
+              review_body: expect.any(String),
+              category: expect.any(String),
+              created_at: expect.any(Date),
+              votes: expect.any(Number),
+            })
+          );
+        });
+        expect(output).toBeInstanceOf(Array);
+      });
+  });
   test("should return the dates in descending order", () => {
     return request(app)
       .get("/api/reviews")
@@ -69,3 +92,5 @@ describe("api/reviews", () => {
       });
   });
 });
+
+describe("/api/reviews/:review_id", () => {});
