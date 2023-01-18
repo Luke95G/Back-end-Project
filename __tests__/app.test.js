@@ -135,3 +135,53 @@ test("should respond with a 400 bad request when the review_id is not valid", ()
       expect(body.message).toBe("Bad request.");
     });
 });
+
+describe("GET /api/reviews/:review_id/comments", () => {
+  test("should return with a status 200", () => {
+    return request(app).get("/api/reviews/2/comments").expect(200);
+  });
+  test("should return an array of objects for a given review_id with specific properties", () => {
+    return request(app)
+      .get("/api/reviews/3/comments")
+      .expect(200)
+      .then((result) => {
+        expect(result.body.comments).toBeInstanceOf(Array);
+        result.body.comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              body: expect.any(String),
+              votes: expect.any(Number),
+              author: expect.any(String),
+              review_id: expect.any(Number),
+              created_at: expect.any(String),
+              comment_id: expect.any(Number),
+            })
+          );
+        });
+      });
+  });
+  test("should test to see if the order is most recent comments first", () => {
+    return request(app)
+      .get("/api/reviews/3/comments")
+      .then((result) => {
+        const output = result.body.comments;
+        expect(output).toBeSorted({ descending: true, key: "created_at" });
+      });
+  });
+  test("should respond with a 404 not found when no comments are there", () => {
+    return request(app)
+      .get("/api/reviews/9999/comments")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Page not found.");
+      });
+  });
+  test("should respond with a 400 bad request when the path is not valid", () => {
+    return request(app)
+      .get("/api/reviews/sausages/comments")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request.");
+      });
+  });
+});

@@ -5,11 +5,14 @@ const {
   getAllCategories,
   getAllReviews,
   getReviewById,
+  getComments,
 } = require("./controller");
 
 app.get("/api/categories", getAllCategories);
 app.get("/api/reviews", getAllReviews);
 app.get("/api/reviews/:review_id", getReviewById);
+app.get("/api/reviews/:review_id/comments", getComments);
+
 app.all("/*", (request, response, next) => {
   response.status(404).send({ message: "Page not found." });
 });
