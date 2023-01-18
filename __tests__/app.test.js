@@ -63,6 +63,7 @@ describe("api/reviews", () => {
       .get("/api/reviews")
       .then((result) => {
         const output = result.body.reviews;
+        expect(output).toBeInstanceOf(Array);
         reviews.forEach((review) => {
           expect(review).toEqual(
             expect.objectContaining({
@@ -77,7 +78,6 @@ describe("api/reviews", () => {
             })
           );
         });
-        expect(output).toBeInstanceOf(Array);
       });
   });
   test("should return the dates in descending order", () => {
@@ -93,4 +93,47 @@ describe("api/reviews", () => {
   });
 });
 
-describe("/api/reviews/:review_id", () => {});
+describe("/api/reviews/:review_id", () => {
+  test("should respond with a 200", () => {
+    return request(app).get("/api/reviews/3").expect(200);
+  });
+  test("should respond with a review object by a review_id", () => {
+    return request(app)
+      .get("/api/reviews/3")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.review).toBeInstanceOf(Array);
+        body.review.forEach((review) => {
+          expect(review).toEqual(
+            expect.objectContaining({
+              owner: expect.any(String),
+              title: expect.any(String),
+              review_id: expect.any(Number),
+              designer: expect.any(String),
+              review_img_url: expect.any(String),
+              category: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(Number),
+            })
+          );
+        });
+      });
+  });
+  test("should respond with a 404 not found when given a path that doesnt exist", () => {
+    return request(app)
+      .get("/api/reviews/5555")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Page not found.");
+      });
+  });
+  test("should respond with a 400 bad request when the review_id is not valid", () => {
+    return request(app)
+      .get("/api/reviews/bonjour")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request.");
+      });
+  });
+});
