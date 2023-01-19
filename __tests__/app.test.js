@@ -5,7 +5,6 @@ const db = require("../db/connection");
 const testData = require("../db/data/test-data");
 const reviews = require("../db/data/development-data/reviews");
 const { DatabaseError } = require("pg");
-const { string } = require("pg-format");
 
 afterAll(() => {
   return db.end();
@@ -192,69 +191,8 @@ describe("GET /api/reviews/:review_id/comments", () => {
       .get("/api/reviews/1/comments")
       .expect(200)
       .then(({ body }) => {
-        const output = body.comments.comments;
-        expect(output).toEqual([]);
-      });
-  });
-});
-//////////////////////////////////////////////// <- just so i know where im up too for Q7:)
-xdescribe("POST /api/reviews/:review_id/comments", () => {
-  test("should return with a status 201", () => {
-    const newComment = {
-      username: "mallionaire",
-      body: "Wahooooooooo we love gamez",
-    };
-    return request(app)
-      .post("/api/reviews/2/comments")
-      .send(newComment)
-      .expect(201);
-  });
-  test("should return the new posted comment ", () => {
-    const newComment = {
-      username: "mallionaire",
-      body: "Wahooooooooo we love gamez",
-    };
-    return request(app)
-      .post("/api/reviews/2/comments")
-      .send(newComment)
-      .expect(201)
-      .then(({ body: { newComment } }) => {
-        expect(newComment).toEqual(
-          expect.objectContaining({
-            comment_id: expect.any(Number),
-            body: expect.any(string),
-            review_id: expect.any(Number),
-            author: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-          })
-        );
-      });
-  });
-  test("should respond with a 404 not found when no reviews are there", () => {
-    const newComment = {
-      username: "mallionaire",
-      body: "Wahooooooooo we love gamez",
-    };
-    return request(app)
-      .post("/api/reviews/5555/comments")
-      .send(newComment)
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.message).toBe("Page not found.");
-      });
-  });
-  test("should respond with a 400 bad request when given an invalid id", () => {
-    const newComment = {
-      username: "mallionaire",
-      body: "Wahooooooooo we love gamez",
-    };
-    return request(app)
-      .post("/api/reviews/5555/comments")
-      .send(newComment)
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.message).toBe("Bad request.");
+        const output = body.comments;
+        expect(output).toEqual({ comments: [] });
       });
   });
 });

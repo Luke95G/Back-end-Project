@@ -40,9 +40,20 @@ const getComments = (request, response, next) => {
     .catch(next);
 };
 
+const postComment = (request, response, next) => {
+  const { body } = request;
+  const { review_id } = request.params;
+  newComment(review_id, body)
+    .then((newComment) => {
+      response.status(201).send(newComment);
+    })
+    .catch(next);
+};
+
 module.exports = {
   getAllCategories,
   getAllReviews,
   getReviewById,
   getComments,
+  postComment,
 };

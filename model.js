@@ -54,9 +54,14 @@ fetchComments = (review_id) => {
   );
 };
 
+const newComment = (review_id, comment) => {
+  const { body, username } = comment;
+};
+
 module.exports = {
   readCategories,
   readReviews,
   fetchReviewById,
   fetchComments,
+  newComment,
 };
