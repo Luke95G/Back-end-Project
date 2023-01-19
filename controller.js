@@ -1,5 +1,10 @@
 const { devData } = require("./db/data/development-data/index");
-const { readCategories, readReviews, fetchReviewById } = require("./model");
+const {
+  readCategories,
+  readReviews,
+  fetchReviewById,
+  fetchComments,
+} = require("./model");
 
 const getAllCategories = (request, respsonse, next) => {
   readCategories()
@@ -25,4 +30,30 @@ const getReviewById = (request, response, next) => {
     })
     .catch(next);
 };
-module.exports = { getAllCategories, getAllReviews, getReviewById };
+
+const getComments = (request, response, next) => {
+  const { review_id } = request.params;
+  fetchComments(review_id)
+    .then((comments) => {
+      response.status(200).send({ comments });
+    })
+    .catch(next);
+};
+
+const postComment = (request, response, next) => {
+  const { body } = request;
+  const { review_id } = request.params;
+  newComment(review_id, body)
+    .then((newComment) => {
+      response.status(201).send(newComment);
+    })
+    .catch(next);
+};
+
+module.exports = {
+  getAllCategories,
+  getAllReviews,
+  getReviewById,
+  getComments,
+  postComment,
+};

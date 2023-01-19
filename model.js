@@ -40,4 +40,28 @@ fetchReviewById = (review_id) => {
     });
 };
 
-module.exports = { readCategories, readReviews, fetchReviewById };
+fetchComments = (review_id) => {
+  const dataBQuery = db.query(
+    `SELECT * FROM comments
+   WHERE comments.review_id = $1
+   ORDER BY created_at DESC;`,
+    [review_id]
+  );
+  return Promise.all([dataBQuery, fetchReviewById(review_id)]).then(
+    (comments) => {
+      return { comments: comments[0].rows };
+    }
+  );
+};
+
+const newComment = (review_id, comment) => {
+  const { body, username } = comment;
+};
+
+module.exports = {
+  readCategories,
+  readReviews,
+  fetchReviewById,
+  fetchComments,
+  newComment,
+};

@@ -135,3 +135,64 @@ test("should respond with a 400 bad request when the review_id is not valid", ()
       expect(body.message).toBe("Bad request.");
     });
 });
+
+describe("GET /api/reviews/:review_id/comments", () => {
+  test("should return with a status 200", () => {
+    return request(app).get("/api/reviews/2/comments").expect(200);
+  });
+  test("should return an array of objects for a given review_id with specific properties", () => {
+    return request(app)
+      .get("/api/reviews/3/comments")
+      .expect(200)
+      .then((result) => {
+        const output = result.body.comments;
+        expect(output.comments.length).toBe(3);
+        expect(output.comments).toBeInstanceOf(Array);
+        output.comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              body: expect.any(String),
+              votes: expect.any(Number),
+              author: expect.any(String),
+              review_id: expect.any(Number),
+              created_at: expect.any(String),
+              comment_id: expect.any(Number),
+            })
+          );
+        });
+      });
+  });
+  test("should test to see if the order is most recent comments first", () => {
+    return request(app)
+      .get("/api/reviews/2/comments")
+      .then((result) => {
+        const output = result.body.comments.comments;
+        expect(output).toBeSorted({ descending: true, key: "created_at" });
+      });
+  });
+  test("should respond with a 404 not found when the review id is none existant", () => {
+    return request(app)
+      .get("/api/reviews/9999/comments")
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Page not found.");
+      });
+  });
+  test("should respond with a 400 bad request when the path is not valid", () => {
+    return request(app)
+      .get("/api/reviews/sausages/comments")
+      .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request.");
+      });
+  });
+  test("should respond with an empty array when no comments are found", () => {
+    return request(app)
+      .get("/api/reviews/1/comments")
+      .expect(200)
+      .then(({ body }) => {
+        const output = body.comments;
+        expect(output).toEqual({ comments: [] });
+      });
+  });
+});
