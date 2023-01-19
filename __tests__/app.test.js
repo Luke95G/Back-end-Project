@@ -171,7 +171,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
         expect(output).toBeSorted({ descending: true, key: "created_at" });
       });
   });
-  test("should respond with a 404 not found when no comments are there", () => {
+  test("should respond with a 404 not found when the review id is none existant", () => {
     return request(app)
       .get("/api/reviews/9999/comments")
       .expect(404)
