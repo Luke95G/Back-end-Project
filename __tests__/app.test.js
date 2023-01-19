@@ -5,6 +5,7 @@ const db = require("../db/connection");
 const testData = require("../db/data/test-data");
 const reviews = require("../db/data/development-data/reviews");
 const { DatabaseError } = require("pg");
+const { string } = require("pg-format");
 
 afterAll(() => {
   return db.end();
@@ -145,8 +146,10 @@ describe("GET /api/reviews/:review_id/comments", () => {
       .get("/api/reviews/3/comments")
       .expect(200)
       .then((result) => {
-        expect(result.body.comments).toBeInstanceOf(Array);
-        result.body.comments.forEach((comment) => {
+        const output = result.body.comments;
+        expect(output.comments.length).toBe(3);
+        expect(output.comments).toBeInstanceOf(Array);
+        output.comments.forEach((comment) => {
           expect(comment).toEqual(
             expect.objectContaining({
               body: expect.any(String),
@@ -162,9 +165,9 @@ describe("GET /api/reviews/:review_id/comments", () => {
   });
   test("should test to see if the order is most recent comments first", () => {
     return request(app)
-      .get("/api/reviews/3/comments")
+      .get("/api/reviews/2/comments")
       .then((result) => {
-        const output = result.body.comments;
+        const output = result.body.comments.comments;
         expect(output).toBeSorted({ descending: true, key: "created_at" });
       });
   });
@@ -180,6 +183,76 @@ describe("GET /api/reviews/:review_id/comments", () => {
     return request(app)
       .get("/api/reviews/sausages/comments")
       .expect(400)
+      .then(({ body }) => {
+        expect(body.message).toBe("Bad request.");
+      });
+  });
+  test("should respond with an empty array when no comments are found", () => {
+    return request(app)
+      .get("/api/reviews/1/comments")
+      .expect(200)
+      .then(({ body }) => {
+        const output = body.comments.comments;
+        expect(output).toEqual([]);
+      });
+  });
+});
+//////////////////////////////////////////////// <- just so i know where im up too for Q7:)
+xdescribe("POST /api/reviews/:review_id/comments", () => {
+  test("should return with a status 201", () => {
+    const newComment = {
+      username: "mallionaire",
+      body: "Wahooooooooo we love gamez",
+    };
+    return request(app)
+      .post("/api/reviews/2/comments")
+      .send(newComment)
+      .expect(201);
+  });
+  test("should return the new posted comment ", () => {
+    const newComment = {
+      username: "mallionaire",
+      body: "Wahooooooooo we love gamez",
+    };
+    return request(app)
+      .post("/api/reviews/2/comments")
+      .send(newComment)
+      .expect(201)
+      .then(({ body: { newComment } }) => {
+        expect(newComment).toEqual(
+          expect.objectContaining({
+            comment_id: expect.any(Number),
+            body: expect.any(string),
+            review_id: expect.any(Number),
+            author: expect.any(String),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+          })
+        );
+      });
+  });
+  test("should respond with a 404 not found when no reviews are there", () => {
+    const newComment = {
+      username: "mallionaire",
+      body: "Wahooooooooo we love gamez",
+    };
+    return request(app)
+      .post("/api/reviews/5555/comments")
+      .send(newComment)
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.message).toBe("Page not found.");
+      });
+  });
+  test("should respond with a 400 bad request when given an invalid id", () => {
+    const newComment = {
+      username: "mallionaire",
+      body: "Wahooooooooo we love gamez",
+    };
+    return request(app)
+      .post("/api/reviews/5555/comments")
+      .send(newComment)
+      .expect(404)
       .then(({ body }) => {
         expect(body.message).toBe("Bad request.");
       });

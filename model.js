@@ -41,19 +41,17 @@ fetchReviewById = (review_id) => {
 };
 
 fetchComments = (review_id) => {
-  return db
-    .query(
-      `SELECT * FROM comments
+  const dataBQuery = db.query(
+    `SELECT * FROM comments
    WHERE comments.review_id = $1
    ORDER BY created_at DESC;`,
-      [review_id]
-    )
-    .then(({ rows }) => {
-      if (rows.length === 0) {
-        return Promise.reject({ status: 404, message: "Page not found." });
-      }
-      return rows;
-    });
+    [review_id]
+  );
+  return Promise.all([dataBQuery, fetchReviewById(review_id)]).then(
+    (comments) => {
+      return { comments: comments[0].rows };
+    }
+  );
 };
 
 module.exports = {
