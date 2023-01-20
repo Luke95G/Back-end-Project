@@ -5,8 +5,6 @@ const db = require("../db/connection");
 const testData = require("../db/data/test-data");
 const reviews = require("../db/data/development-data/reviews");
 const { DatabaseError } = require("pg");
-const { response } = require("../app");
-
 afterAll(() => {
   return db.end();
 });
@@ -305,7 +303,7 @@ describe("PATCH /api/reviews/:review_id", () => {
       .expect(404)
       .then((response) => {
         const output = response.body.message;
-        const expected = "Path not found.";
+        const expected = "Not found.";
         expect(output).toBe(expected);
       });
   });

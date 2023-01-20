@@ -71,13 +71,16 @@ newComment = (review_id, username, body) => {
 };
 
 updateReviewVote = (review_id, inc_votes) => {
+  if (inc_votes === undefined) {
+    return Promise.reject({ status: 400, message: "Bad request." });
+  }
   const queryString = `UPDATE reviews 
   SET votes = votes + $1
   WHERE review_id = $2
    RETURNING *;`;
   return db.query(queryString, [inc_votes, review_id]).then(({ rows }) => {
     if (rows.length === 0) {
-      return Promise.reject({ status: 404, message: "Path not found." });
+      return Promise.reject({ status: 404, message: "Not found." });
     }
     return rows[0];
   });
