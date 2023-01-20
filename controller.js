@@ -6,6 +6,7 @@ const {
   fetchComments,
   newComment,
   updateReviewVote,
+  viewUsers,
 } = require("./model");
 
 const getAllCategories = (request, respsonse, next) => {
@@ -63,6 +64,18 @@ const patchReviewVote = (request, response, next) => {
     .catch(next);
 };
 
+const seeAllUsers = (request, response, next) => {
+  viewUsers()
+    .then((users) => {
+      response.status(200).send({ users });
+    })
+    .catch((err) => {
+      {
+        next(err);
+      }
+    });
+};
+
 module.exports = {
   getAllCategories,
   getAllReviews,
@@ -70,4 +83,5 @@ module.exports = {
   getComments,
   postComment,
   patchReviewVote,
+  seeAllUsers,
 };

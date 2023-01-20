@@ -332,3 +332,18 @@ describe("PATCH /api/reviews/:review_id", () => {
       });
   });
 });
+
+describe("GET /api/users", () => {
+  test("should have status 200 and return all usernames from the users", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.users;
+        expect(output).toBeInstanceOf(Array);
+        expect(output[0].username).toBe("mallionaire");
+        expect(output[1].username).toBe("philippaclaire9");
+        expect(output[2].username).toBe("bainesface");
+      });
+  });
+});
