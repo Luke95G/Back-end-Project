@@ -170,7 +170,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
         expect(output).toBeSorted({ descending: true, key: "created_at" });
       });
   });
-  test("should respond with a 404 not found when the review id is none existant", () => {
+  test("should respond with a 404 not found when the review id doesnt exist on the db", () => {
     return request(app)
       .get("/api/reviews/9999/comments")
       .expect(404)
@@ -220,7 +220,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
         );
       });
   });
-  test("status 400 and if no username send back bad request error", () => {
+  test("status 400 and if no username field send back bad request error", () => {
     const newComment = {
       body: "thereIsNobodyHere",
     };
