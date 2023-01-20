@@ -4,6 +4,7 @@ const {
   readReviews,
   fetchReviewById,
   fetchComments,
+  newComment,
 } = require("./model");
 
 const getAllCategories = (request, respsonse, next) => {
@@ -41,11 +42,11 @@ const getComments = (request, response, next) => {
 };
 
 const postComment = (request, response, next) => {
-  const { body } = request;
+  const { username, body } = request.body;
   const { review_id } = request.params;
-  newComment(review_id, body)
+  newComment(review_id, username, body)
     .then((newComment) => {
-      response.status(201).send(newComment);
+      response.status(201).send({ newComment });
     })
     .catch(next);
 };

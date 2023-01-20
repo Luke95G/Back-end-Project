@@ -1,3 +1,4 @@
+const { DatabaseError } = require("pg");
 const db = require("./db/connection");
 
 readCategories = () => {
@@ -54,8 +55,19 @@ fetchComments = (review_id) => {
   );
 };
 
-const newComment = (review_id, comment) => {
-  const { body, username } = comment;
+const newComment = (review_id, username, body) => {
+  if (!username || !body) {
+    return Promise.reject({ status: 400, msg: "Bad request." });
+  }
+  const queryString = `INSERT INTO comments (author, body, review_id) 
+  VALUES ($1, $2, $3) 
+  RETURNING *;`;
+  return db.query(queryString, [username, body, review_id]).then(({ rows }) => {
+    if (rows.length === 0) {
+      return Promise.reject({ status: 404, msg: "Path not found." });
+    }
+    return rows[0];
+  });
 };
 
 module.exports = {

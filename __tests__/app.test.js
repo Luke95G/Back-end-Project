@@ -170,7 +170,7 @@ describe("GET /api/reviews/:review_id/comments", () => {
         expect(output).toBeSorted({ descending: true, key: "created_at" });
       });
   });
-  test("should respond with a 404 not found when the review id is none existant", () => {
+  test("should respond with a 404 not found when the review id doesnt exist on the db", () => {
     return request(app)
       .get("/api/reviews/9999/comments")
       .expect(404)
@@ -193,6 +193,58 @@ describe("GET /api/reviews/:review_id/comments", () => {
       .then(({ body }) => {
         const output = body.comments;
         expect(output).toEqual({ comments: [] });
+      });
+  });
+});
+
+describe("POST /api/reviews/:review_id/comments", () => {
+  test("should return with a status 201 and test the reply object for the new comment", () => {
+    const newComment = {
+      username: "mallionaire",
+      body: "Wooo we love gamez!",
+    };
+    return request(app)
+      .post("/api/reviews/3/comments")
+      .send(newComment)
+      .expect(201)
+      .then((response) => {
+        const output = response.body.newComment;
+        expect(output).toEqual(
+          expect.objectContaining({
+            body: expect.any(String),
+            votes: expect.any(Number),
+            author: expect.any(String),
+            review_id: expect.any(Number),
+            created_at: expect.any(String),
+          })
+        );
+      });
+  });
+  test("status 400 and if no username field send back bad request error", () => {
+    const newComment = {
+      body: "thereIsNobodyHere",
+    };
+    return request(app)
+      .post("/api/reviews/2/comments")
+      .send(newComment)
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
+      });
+  });
+  test("status 400 and if review id is an invalid send back return bad request error", () => {
+    const newComment = {
+      username: "bainesface",
+      body: "whosThatString",
+    };
+    return request(app)
+      .post("/api/reviews/nothingToSeeHere/comments")
+      .send(newComment)
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
       });
   });
 });
