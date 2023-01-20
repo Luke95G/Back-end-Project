@@ -8,12 +8,14 @@ const {
   getComments,
   postComment,
   patchReviewVote,
+  seeAllUsers,
 } = require("./controller");
 
 app.get("/api/categories", getAllCategories);
 app.get("/api/reviews", getAllReviews);
 app.get("/api/reviews/:review_id", getReviewById);
 app.get("/api/reviews/:review_id/comments", getComments);
+app.get("/api/users", seeAllUsers);
 app.post("/api/reviews/:review_id/comments", postComment);
 app.patch("/api/reviews/:review_id", patchReviewVote);
 

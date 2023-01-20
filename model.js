@@ -86,6 +86,14 @@ updateReviewVote = (review_id, inc_votes) => {
   });
 };
 
+viewUsers = () => {
+  let queryString = `SELECT * 
+  FROM users;`;
+  return db.query(queryString).then((response) => {
+    return response.rows;
+  });
+};
+
 module.exports = {
   readCategories,
   readReviews,
@@ -93,4 +101,5 @@ module.exports = {
   fetchComments,
   newComment,
   updateReviewVote,
+  viewUsers,
 };
