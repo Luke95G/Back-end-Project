@@ -140,6 +140,23 @@ arrangeReviews = (sort_by = "created_at", order = "DESC", category) => {
   });
 };
 
+fetchReviewById = (review_id) => {
+  const queryString = `SELECT reviews.*, 
+  CAST (COUNT (comments.body) AS INT)comment_count  
+  FROM reviews 
+  LEFT JOIN comments
+  ON reviews.review_id = comments.review_id
+  WHERE reviews.review_id = $1
+  GROUP BY reviews.review_id`;
+  return db.query(queryString, [review_id]).then(({ rows, rowCount }) => {
+    if (rowCount === 0) {
+      return Promise.reject({ status: 404, message: "Page not found." });
+    } else {
+      return rows;
+    }
+  });
+};
+
 module.exports = {
   readCategories,
   readReviews,
@@ -149,4 +166,5 @@ module.exports = {
   updateReviewVote,
   viewUsers,
   arrangeReviews,
+  fetchReviewById,
 };

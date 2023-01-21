@@ -3,8 +3,7 @@ const app = express();
 app.use(express.json());
 const {
   getAllCategories,
-  getAllReviews,
-  getReviewById,
+  viewReviewById,
   getComments,
   postComment,
   patchReviewVote,
@@ -14,7 +13,7 @@ const {
 
 app.get("/api/categories", getAllCategories);
 app.get("/api/reviews", viewAllReviews);
-app.get("/api/reviews/:review_id", getReviewById);
+app.get("/api/reviews/:review_id", viewReviewById);
 app.get("/api/reviews/:review_id/comments", getComments);
 app.get("/api/users", seeAllUsers);
 app.post("/api/reviews/:review_id/comments", postComment);
@@ -42,7 +41,7 @@ app.use((err, request, response, next) => {
 
 app.use((err, req, res, next) => {
   if (err.code === "23503") {
-    res.status(404).send({ msg: "Path not found" });
+    res.status(404).send({ message: "Path not found." });
   } else {
     next(err);
   }
