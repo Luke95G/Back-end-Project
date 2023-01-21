@@ -5,6 +5,7 @@ const db = require("../db/connection");
 const testData = require("../db/data/test-data");
 const reviews = require("../db/data/development-data/reviews");
 const { DatabaseError } = require("pg");
+const { response } = require("../app");
 afterAll(() => {
   return db.end();
 });
@@ -344,6 +345,128 @@ describe("GET /api/users", () => {
         expect(output[0].username).toBe("mallionaire");
         expect(output[1].username).toBe("philippaclaire9");
         expect(output[2].username).toBe("bainesface");
+      });
+  });
+});
+
+describe("GET /api/reviews", () => {
+  test("should give status 200 and return with an array of objects with owner, title, review id, category, review img url, created at, votes and designer", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeInstanceOf(Array);
+        output.forEach((review) => {
+          expect(review).toEqual(
+            expect.objectContaining({
+              owner: expect.any(String),
+              title: expect.any(String),
+              review_id: expect.any(Number),
+              category: expect.any(String),
+              review_img_url: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+            })
+          );
+        });
+      });
+  });
+  test("should return the total count of all the comments with a review id", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        output.forEach((review) => {
+          expect(review.hasOwnProperty("comment_count")).toBe(true);
+        });
+      });
+  });
+  test("should return in date descending order", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+  test("should take a sort by query, which then sorts by title", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=title")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("title", {
+          descending: true,
+          coerce: true,
+        });
+      });
+  });
+  test("should take a query and return the query in default order, date and descending", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("should accept a category and then return the games in that category", () => {
+    return request(app)
+      .get("/api/reviews/?category=social+deduction")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("accept a valid category but when no reviews are there, return empty array", () => {
+    return request(app)
+      .get(`/api/reviews/?category=children's+games`)
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toEqual([]);
+      });
+  });
+  test("return reviews ordered by title in asc order", () => {
+    return request(app)
+      .get(`/api/reviews/?sort_by=designer&&order=asc`)
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("designer", { descending: false });
+      });
+  });
+  test("testing for a 404 when a category column isnt valid", () => {
+    return request(app)
+      .get(`/api/reviews/?category=nothing`)
+      .expect(404)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Category not found.");
+      });
+  });
+  test("should give status 400, when entered non-valid sort by query", () => {
+    return request(app)
+      .get("/api/reviews/?sort_by=badrequest")
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
+      });
+  });
+  test("should give status 400 when order query isnt valid", () => {
+    return request(app)
+      .get(`/api/reviews/?sort_by=title&&order=phone`)
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
       });
   });
 });

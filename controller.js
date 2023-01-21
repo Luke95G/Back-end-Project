@@ -7,6 +7,7 @@ const {
   newComment,
   updateReviewVote,
   viewUsers,
+  arrangeReviews,
 } = require("./model");
 
 const getAllCategories = (request, respsonse, next) => {
@@ -76,6 +77,19 @@ const seeAllUsers = (request, response, next) => {
     });
 };
 
+const viewAllReviews = (request, response, next) => {
+  const { sort_by } = request.query;
+  const { order } = request.query;
+  const { category } = request.query;
+  arrangeReviews(sort_by, order, category)
+    .then((reviews) => {
+      response.status(200).send({ reviews });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
 module.exports = {
   getAllCategories,
   getAllReviews,
@@ -84,4 +98,5 @@ module.exports = {
   postComment,
   patchReviewVote,
   seeAllUsers,
+  viewAllReviews,
 };
