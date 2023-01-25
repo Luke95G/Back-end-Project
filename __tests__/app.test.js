@@ -537,3 +537,15 @@ describe("GET /api/reviews/review_id:", () => {
       });
   });
 });
+
+describe("DELETE /api/comments/:comment_id", () => {
+  test("status 204 and return no content", () => {
+    return request(app)
+      .delete("/api/comments/4")
+      .expect(204)
+      .then((response) => {
+        const output = response.body;
+        expect(output).toEqual({});
+      });
+  });
+});

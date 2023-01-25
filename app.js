@@ -9,6 +9,7 @@ const {
   patchReviewVote,
   seeAllUsers,
   viewAllReviews,
+  deleteCommentById,
 } = require("./controller");
 
 app.get("/api/categories", getAllCategories);
@@ -18,6 +19,7 @@ app.get("/api/reviews/:review_id/comments", getComments);
 app.get("/api/users", seeAllUsers);
 app.post("/api/reviews/:review_id/comments", postComment);
 app.patch("/api/reviews/:review_id", patchReviewVote);
+app.delete("/api/comments/:comment_id", deleteCommentById);
 
 app.all("/*", (request, response, next) => {
   response.status(404).send({ message: "Page not found." });
