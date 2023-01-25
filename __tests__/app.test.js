@@ -5,6 +5,7 @@ const db = require("../db/connection");
 const testData = require("../db/data/test-data");
 const reviews = require("../db/data/development-data/reviews");
 const { DatabaseError } = require("pg");
+const { response } = require("../app");
 afterAll(() => {
   return db.end();
 });
@@ -34,7 +35,7 @@ describe("app", () => {
     });
   });
 });
-describe("api/reviews", () => {
+describe("GET api/reviews", () => {
   test("status: 200", () => {
     return request(app).get("/api/reviews").expect(200);
   });
@@ -84,15 +85,33 @@ describe("api/reviews", () => {
       .get("/api/reviews")
       .expect(200)
       .then((result) => {
-        const input = result.body.reviews;
-        expect(input).toBeSorted("created_at", {
+        const output = result.body.reviews;
+        expect(output).toBeSorted("created_at", {
           descending: true,
         });
       });
   });
+  test("status 400 and returns a bad request when review id is invalid", () => {
+    return request(app)
+      .get("/api/reviews/pineapple")
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
+      });
+  });
+  test("status 400 and returns not found when review id is a valid but doesn't exist on db", () => {
+    return request(app)
+      .get("/api/reviews/5555")
+      .expect(404)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Page not found.");
+      });
+  });
 });
 
-describe("/api/reviews/:review_id", () => {
+describe("GET /api/reviews/:review_id", () => {
   test("should respond with a 200", () => {
     return request(app).get("/api/reviews/3").expect(200);
   });
@@ -101,20 +120,22 @@ describe("/api/reviews/:review_id", () => {
       .get("/api/reviews/3")
       .expect(200)
       .then(({ body }) => {
-        expect(body.review).toBeInstanceOf(Object);
-        expect(body.review).toEqual(
-          expect.objectContaining({
-            owner: expect.any(String),
-            title: expect.any(String),
-            review_id: expect.any(Number),
-            designer: expect.any(String),
-            review_img_url: expect.any(String),
-            category: expect.any(String),
-            created_at: expect.any(String),
-            votes: expect.any(Number),
-            comment_count: expect.any(Number),
-          })
-        );
+        expect(body.review).toBeInstanceOf(Array);
+        body.review.forEach((review) => {
+          expect(review).toEqual(
+            expect.objectContaining({
+              owner: expect.any(String),
+              title: expect.any(String),
+              review_id: expect.any(Number),
+              designer: expect.any(String),
+              review_img_url: expect.any(String),
+              category: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(Number),
+            })
+          );
+        });
       });
   });
   test("should respond with a 404 not found when given a path that doesnt exist", () => {
@@ -214,6 +235,7 @@ describe("POST /api/reviews/:review_id/comments", () => {
             votes: expect.any(Number),
             author: expect.any(String),
             review_id: expect.any(Number),
+            created_at: expect.any(String),
           })
         );
       });
@@ -243,6 +265,20 @@ describe("POST /api/reviews/:review_id/comments", () => {
       .then((response) => {
         const output = response.body.message;
         expect(output).toBe("Bad request.");
+      });
+  });
+  test("Status 404 path not found, if review id entered is valid but does not exist on the db", () => {
+    const newComment = {
+      username: "bainesface",
+      body: "whosThatString",
+    };
+    return request(app)
+      .post("/api/reviews/5555/comments")
+      .send(newComment)
+      .expect(404)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Path not found.");
       });
   });
 });
@@ -340,10 +376,164 @@ describe("GET /api/users", () => {
       .expect(200)
       .then((response) => {
         const output = response.body.users;
+        expect(output.length).toBeGreaterThan(1);
         expect(output).toBeInstanceOf(Array);
         expect(output[0].username).toBe("mallionaire");
         expect(output[1].username).toBe("philippaclaire9");
         expect(output[2].username).toBe("bainesface");
+      });
+  });
+});
+
+describe("GET /api/reviews", () => {
+  test("should give status 200 and return with an array of objects with owner, title, review id, category, review img url, created at, votes and designer", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeInstanceOf(Array);
+        output.forEach((review) => {
+          expect(review).toEqual(
+            expect.objectContaining({
+              owner: expect.any(String),
+              title: expect.any(String),
+              review_id: expect.any(Number),
+              category: expect.any(String),
+              review_img_url: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              designer: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+  test("should return the total count of all the comments with a review id", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        output.forEach((review) => {
+          expect(review.hasOwnProperty("comment_count")).toBe(true);
+        });
+      });
+  });
+  test("should return in date descending order", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+  });
+  test("should take a sort by query, which then sorts by title", () => {
+    return request(app)
+      .get("/api/reviews?sort_by=title")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("title", {
+          descending: true,
+          coerce: true,
+        });
+      });
+  });
+  test("should take a query and return the query in default order, date and descending", () => {
+    return request(app)
+      .get("/api/reviews")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("should accept a category and then return the games in that category", () => {
+    return request(app)
+      .get("/api/reviews/?category=social+deduction")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  test("accept a valid category but when no reviews are there, return empty array", () => {
+    return request(app)
+      .get(`/api/reviews/?category=children's+games`)
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toEqual([]);
+      });
+  });
+  test("return reviews ordered by title in asc order", () => {
+    return request(app)
+      .get(`/api/reviews/?sort_by=designer&&order=asc`)
+      .expect(200)
+      .then((response) => {
+        const output = response.body.reviews;
+        expect(output).toBeSortedBy("designer", { descending: false });
+      });
+  });
+  test("testing for a 404 when a category column isnt valid", () => {
+    return request(app)
+      .get(`/api/reviews/?category=nothingToSeeHere`)
+      .expect(404)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Category not found.");
+      });
+  });
+  test("should give status 400, when entered non-valid sort by query", () => {
+    return request(app)
+      .get("/api/reviews/?sort_by=notGood")
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
+      });
+  });
+  test("should give status 400 when order query isnt valid", () => {
+    return request(app)
+      .get(`/api/reviews/?sort_by=title&&order=sausages`)
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
+      });
+  });
+});
+
+describe("GET /api/reviews/review_id:", () => {
+  test("status 200 and should return an object with the right review_id from the endpoint with an owner, title, review_id, category, review_img_url, created_at, votes, designer and review body", () => {
+    return request(app)
+      .get("/api/reviews/1")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.review[0];
+        expect(typeof output).toBe("object");
+        expect(output.hasOwnProperty("owner")).toBe(true);
+        expect(output.hasOwnProperty("title")).toBe(true);
+        expect(output.hasOwnProperty("review_id")).toBe(true);
+        expect(output.hasOwnProperty("category")).toBe(true);
+        expect(output.hasOwnProperty("review_img_url")).toBe(true);
+        expect(output.hasOwnProperty("created_at")).toBe(true);
+        expect(output.hasOwnProperty("votes")).toBe(true);
+        expect(output.hasOwnProperty("designer")).toBe(true);
+        expect(output.hasOwnProperty("review_body")).toBe(true);
+      });
+  });
+  test("should test comment count field which has been added to get review by review id", () => {
+    return request(app)
+      .get("/api/reviews/2")
+      .expect(200)
+      .then((response) => {
+        const output = response.body.review[0].comment_count;
+        expect(output).toEqual(3);
       });
   });
 });

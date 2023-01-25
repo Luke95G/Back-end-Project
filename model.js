@@ -94,6 +94,69 @@ viewUsers = () => {
   });
 };
 
+arrangeReviews = (sort_by = "created_at", order = "DESC", category) => {
+  let queryString = `SELECT reviews.*, 
+  CAST(COUNT(comments.review_id) AS int)  
+  AS comment_count
+  FROM reviews
+  LEFT JOIN comments 
+  ON comments.review_id = reviews.review_id `;
+  const queryArr = [];
+  const columnArr = [
+    "owner",
+    "title",
+    "designer",
+    "review_img_url",
+    "review_body",
+    "category",
+    "created_at",
+    "votes",
+  ];
+  const categoryArr = [
+    "euro game",
+    "social deduction",
+    "dexterity",
+    "children's games",
+  ];
+  const orderedArr = ["asc", "desc", "ASC", "DESC"];
+  if (category) {
+    queryString += `WHERE category = $1`;
+    queryArr.push(category);
+  }
+  if (!columnArr.includes(sort_by) || !orderedArr.includes(order)) {
+    return Promise.reject({ status: 400, message: "Bad request." });
+  }
+
+  queryString += ` GROUP BY reviews.review_id
+ ORDER BY reviews.${sort_by} ${order};`;
+  return db.query(queryString, queryArr).then((response) => {
+    if (response.rows.length === 0 && categoryArr.includes(category)) {
+      return [];
+    }
+    if (response.rows.length === 0) {
+      return Promise.reject({ status: 404, message: "Category not found." });
+    }
+    return response.rows;
+  });
+};
+
+fetchReviewById = (review_id) => {
+  const queryString = `SELECT reviews.*, 
+  CAST (COUNT (comments.body) AS INT)comment_count  
+  FROM reviews 
+  LEFT JOIN comments
+  ON reviews.review_id = comments.review_id
+  WHERE reviews.review_id = $1
+  GROUP BY reviews.review_id`;
+  return db.query(queryString, [review_id]).then(({ rows, rowCount }) => {
+    if (rowCount === 0) {
+      return Promise.reject({ status: 404, message: "Page not found." });
+    } else {
+      return rows;
+    }
+  });
+};
+
 module.exports = {
   readCategories,
   readReviews,
@@ -102,4 +165,6 @@ module.exports = {
   newComment,
   updateReviewVote,
   viewUsers,
+  arrangeReviews,
+  fetchReviewById,
 };
