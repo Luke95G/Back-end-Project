@@ -548,4 +548,34 @@ describe("DELETE /api/comments/:comment_id", () => {
         expect(output).toEqual({});
       });
   });
+  test("status 400 and return error when the comment id is invalid", () => {
+    return request(app)
+      .delete("/api/comments/sausages")
+      .expect(400)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Bad request.");
+      });
+  });
+  test("status 404 return an error when the comment_id does not exist", () => {
+    return request(app)
+      .delete("/api/comments/546")
+      .expect(404)
+      .then((response) => {
+        const output = response.body.message;
+        expect(output).toBe("Path not found.");
+      });
+  });
+});
+
+describe("GET /api", () => {
+  test("status 200 and return all the available endpoints on the API", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then((response) => {
+        const output = response.body;
+        expect(typeof output).toBe("object");
+      });
+  });
 });

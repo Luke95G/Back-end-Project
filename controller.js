@@ -8,7 +8,8 @@ const {
   viewUsers,
   arrangeReviews,
   removeCommentById,
-} = require("./model");
+  readJson,
+} = require("./Model/model");
 
 const getAllCategories = (request, respsonse, next) => {
   readCategories()
@@ -103,6 +104,16 @@ const deleteCommentById = (request, response, next) => {
     .catch(next);
 };
 
+const viewJSON = (request, response, next) => {
+  readJson()
+    .then((data) => {
+      response.status(200).send({ data: JSON.parse(data) });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
 module.exports = {
   getAllCategories,
   getReviewById,
@@ -113,4 +124,5 @@ module.exports = {
   viewAllReviews,
   viewReviewById,
   deleteCommentById,
+  viewJSON,
 };

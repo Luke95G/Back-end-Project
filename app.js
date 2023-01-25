@@ -10,8 +10,10 @@ const {
   seeAllUsers,
   viewAllReviews,
   deleteCommentById,
+  viewJSON,
 } = require("./controller");
 
+app.get("/api", viewJSON);
 app.get("/api/categories", getAllCategories);
 app.get("/api/reviews", viewAllReviews);
 app.get("/api/reviews/:review_id", viewReviewById);
