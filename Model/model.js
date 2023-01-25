@@ -1,5 +1,5 @@
-const { DatabaseError } = require("pg");
-const db = require("./db/connection");
+const fs = require("fs/promises");
+const db = require("../db/connection");
 
 readCategories = () => {
   let queryString = `SELECT * FROM categories;`;
@@ -163,10 +163,24 @@ removeCommentById = (comment_id) => {
   RETURNING *;`;
   return db.query(queryString, [comment_id]).then(({ rows }) => {
     if (rows.length === 0) {
-      return Promise.reject({ status: 404, message: "Path not found" });
+      return Promise.reject({ status: 404, message: "Path not found." });
     }
     return rows;
   });
+};
+
+readJson = () => {
+  return fs
+    .readFile("./endpoints.json", (err, data) => {
+      if (err) {
+        console.log(err);
+      }
+
+      return data;
+    })
+    .then((data) => {
+      return data;
+    });
 };
 
 module.exports = {
@@ -180,4 +194,5 @@ module.exports = {
   arrangeReviews,
   fetchReviewById,
   removeCommentById,
+  readJson,
 };
