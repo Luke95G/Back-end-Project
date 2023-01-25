@@ -7,6 +7,7 @@ const {
   updateReviewVote,
   viewUsers,
   arrangeReviews,
+  removeCommentById,
 } = require("./model");
 
 const getAllCategories = (request, respsonse, next) => {
@@ -93,6 +94,15 @@ const viewReviewById = (request, response, next) => {
     });
 };
 
+const deleteCommentById = (request, response, next) => {
+  const { comment_id } = request.params;
+  removeCommentById(comment_id)
+    .then(() => {
+      response.status(204).send();
+    })
+    .catch(next);
+};
+
 module.exports = {
   getAllCategories,
   getReviewById,
@@ -102,4 +112,5 @@ module.exports = {
   seeAllUsers,
   viewAllReviews,
   viewReviewById,
+  deleteCommentById,
 };
