@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 app.use(express.json());
 const {
@@ -13,6 +14,7 @@ const {
   viewJSON,
 } = require("./controller");
 
+app.use(cors());
 app.get("/api", viewJSON);
 app.get("/api/categories", getAllCategories);
 app.get("/api/reviews", viewAllReviews);
